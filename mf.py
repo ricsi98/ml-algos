@@ -1,5 +1,5 @@
 import numpy as np
-from torch import rand
+import optim
 
 # arg_min ||UV^T - R||^2 + alpha * (||U||**2 + ||V||**2)
 
@@ -7,10 +7,10 @@ def random_weights(shape):
     return np.random.normal(0,1,shape)
 
 def _gradU(R, U, V, alpha):
-    return 2 * (U @ V.T - R) @ V + alpha * U
+    return 2 * (U @ V.T - R) @ V #+ alpha * U
 
 def _gradV(R, U, V, alpha):
-    return 2 * (V @ U.T - R.T) @ U + alpha * V
+    return 2 * (V @ U.T - R.T) @ U # + alpha * V
 
 
 class Base:
@@ -37,18 +37,17 @@ class Base:
         return hist
 
 
-class SGD(Base):
+class SGDMF(Base):
 
     def __init__(self, n, m, k, alpha=0.5, lr=1e-3) -> None:
         super().__init__(n, m, k, alpha)
-        self.lr = lr
+        self.opt = optim.SGD(lr, alpha)
 
     def _step(self):
-        U, V, R, alpha, lr = self.U, self.V, self.R, self.alpha, self.lr
+        U, V, R, alpha = self.U, self.V, self.R, self.alpha
         gU = _gradU(R, U, V, alpha)
-        self.U[:] = U - lr * gU
         gV = _gradV(R, U, V, alpha)
-        self.V[:] = V - lr * gV
+        self.opt.step(zip([self.U, self.V], [gU, gV]))
 
 
 class ALS(Base):
@@ -65,6 +64,6 @@ class ALS(Base):
 if __name__ == '__main__':
     m, n, k = 500, 600, 20
     R = np.random.normal(0, 1, (n, m))
-    model = ALS(n, m, k)
+    model = SGDMF(n, m, k)
     print(np.linalg.norm(R - model.U @ model.V.T))
     model.fit(R, 100, False)
