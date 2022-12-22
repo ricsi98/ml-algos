@@ -7,10 +7,10 @@ def random_weights(shape):
     return np.random.normal(0,1,shape)
 
 def _gradU(R, U, V, alpha):
-    return 2 * (U @ V.T - R) @ V #+ alpha * U
+    return 2 * (U @ V.T - R) @ V + alpha * U
 
 def _gradV(R, U, V, alpha):
-    return 2 * (V @ U.T - R.T) @ U # + alpha * V
+    return 2 * (V @ U.T - R.T) @ U + alpha * V
 
 
 class Base:
@@ -41,7 +41,8 @@ class SGDMF(Base):
 
     def __init__(self, n, m, k, alpha=0.5, lr=1e-3) -> None:
         super().__init__(n, m, k, alpha)
-        self.opt = optim.SGD(lr, alpha)
+        self.opt = optim.SGD(lr, 0)
+        self.alpha = alpha
 
     def _step(self):
         U, V, R, alpha = self.U, self.V, self.R, self.alpha

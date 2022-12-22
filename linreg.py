@@ -23,7 +23,7 @@ class LinRegSGD:
         hist = []
         X = np.concatenate((X, np.ones((X.shape[0], 1))), 1)
         for i in range(n_iter):
-            grad = X.T @ X @ self.w - 2 * X.T @ y.reshape(-1, 1)
+            grad = X.T @ X @ self.w - X.T @ y.reshape(-1, 1)
             self.opt.step(zip([self.w], [grad]))
             hist.append(self.rmse())
         return hist
